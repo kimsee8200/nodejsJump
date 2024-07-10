@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../ahikuya-nodejs-express-8af3171dc65c"
+    },
+    {
+      "path": "../nodeJsWebServerJump"
+    },
+    {
+      "path": "../ahikuya-nodejs-mysql-b39cce6b2193"
+    }
+  ],
+  "settings": {}
+}

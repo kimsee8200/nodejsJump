@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../JSBasic"
+    },
+    {
+      "path": "../nodeBasic"
+    },
+    {
+      "path": "../ahikuya-nodejs-webserver-884c91e67803"
+    }
+  ],
+  "settings": {}
+}

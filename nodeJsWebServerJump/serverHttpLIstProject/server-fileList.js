@@ -3,7 +3,7 @@ const http = require("http");
 const fs = require("fs");
 const url = require("url");
 const qs = require("qs");
-
+// 각 코드 복잡성 제거해보기. (refactoring)
 // http 모듈로 서버를 생성한다.
 let server = http.createServer(function (req, res) {
   let reqUrl = req.url;
@@ -17,107 +17,20 @@ let server = http.createServer(function (req, res) {
       list += `<tr>
       <td>${i}</td>
       <td><a href='./?name=${files[i]}'>${files[i]}</a></td>
-      <td><a href='/update?name=${files[i]}'>수정</a></td>
-      <!--<td><a href='/delete?name=${files[i]}'>삭제</a></td>-->
+      <td><a href='/update?name=${files[i]}'>수정</a>
+        <hr>
+        <form action="http://localhost:8080/delete" method="post">
+          <input type = "text" name="name" value = ${files[i]} hidden>
+          <input type = "submit" value = "삭제">
+        </form>
+      </td>
+      <!--<td></td>-->
     </tr>`;
     }
     return list;
   }
 
-  if (pathname === "/") {
-    if (queryData.name === undefined) {
-      fs.readdir("../data", (err, files) => {
-        let list = listMaker(files);
-        let html = `
-      <!DOCTYPE html>
-      <html>
-  
-        <style>
-          table,
-          th,
-          td {
-            border: 1px solid black;
-            border-collapse: collapse;
-          }
-        </style>
-        
-        <head>
-          <meta charset="utf-8">
-        </head>
-        
-        <body>
-        
-          <h2>학생</h2>
-        
-          <table style="width:100%">
-            <tr>
-              <th>id</th>
-              <th>이름</th>
-              <th>설정</th>
-            </tr>
-            ${list}
-          </table>
-        
-          <p>정약용은....</p>
-        
-        </body>
-        
-        </html>
-      `;
-
-        // 한글 깨짐 방지 위해 charset=utf-8 적용
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        res.end(html);
-      });
-    } else {
-      fs.readdir("../data", (err, files) => {
-        fs.readFile(`../data/${queryData.name}`, "utf-8", (err, data) => {
-          if (err) {
-            console.error(err);
-            return;
-          }
-
-          let list = listMaker(files);
-
-          let html = `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta charset="utf-8">
-            </head>
-            <style>
-              table, th, td {
-                border:1px solid black;
-                border-collapse: collapse;
-              }
-            </style>
-          <body>
-  
-          <h2>학생</h2>
-  
-          <table style="width:100%">
-            <tr>
-              <th>id</th>
-              <th>이름</th>
-              <th>설정</th>
-            </tr>
-            ${list}
-          </table>
-  
-          <h2>${queryData.name}</h2>
-          <p>${data}</p>
-  
-          </body>
-          </html>
-    `;
-          res.writeHead(200);
-          res.end(html);
-        });
-      });
-      //name!=undifined -> show detail.
-    }
-    // 디렉터리에 있는 내용을 읽어온다.
-  } else if (pathname === "/create") {
+  function inputHtml(name, data, link, valname) {
     let html = `<!DOCTYPE html>
     <html>
     
@@ -135,11 +48,12 @@ let server = http.createServer(function (req, res) {
     </head>
     
     <body>
-    <H2>학생 정보 추가</H2>
-    <form action="http://localhost:8080/process_create" method="post">
-      <p>이름 : <input type="text" name="name"></p>
+    <H2>학생 정보 ${valname}</H2>
+    <form action="http://localhost:8080/${link}" method="post">
+    <input type="text" name="name_old" value="${name}" hidden>
+      <p>이름 : <input type="text" name="name" value = ${name}></p>
       <p>설명 : 
-        <textarea name="desc"></textarea>
+        <textarea name="desc">${data}</textarea>
       </p>
       <p>
         <input type="submit" value="저장">
@@ -148,6 +62,77 @@ let server = http.createServer(function (req, res) {
     </body>
     
     </html>`;
+
+    return html;
+  }
+
+  function listHtml(list, name, data) {
+    let html = `<!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+      </head>
+      <style>
+        table, th, td {
+          border:1px solid black;
+          border-collapse: collapse;
+        }
+      </style>
+    <body>
+
+    <h2>학생</h2>
+
+    <table style="width:100%">
+      <tr>
+        <th>id</th>
+        <th>이름</th>
+        <th>설정</th>
+      </tr>
+      ${list}
+    </table>
+
+    <a href="/create">입력하기</a>
+
+    <h2>${name}</h2>
+    <p>${data}</p>
+
+    </body>
+    </html>`;
+
+    return html;
+  }
+
+  if (pathname === "/") {
+    if (queryData.name === undefined) {
+      fs.readdir("../data", (err, files) => {
+        let list = listMaker(files);
+        let html = listHtml(list, "", "");
+
+        // 한글 깨짐 방지 위해 charset=utf-8 적용
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(html);
+      });
+    } else {
+      fs.readdir("../data", (err, files) => {
+        fs.readFile(`../data/${queryData.name}`, "utf-8", (err, data) => {
+          if (err) {
+            console.error(err);
+            return;
+          }
+
+          let list = listMaker(files);
+
+          let html = listHtml(list, queryData.name, data);
+
+          res.writeHead(200);
+          res.end(html);
+        });
+      });
+      //name!=undifined -> show detail.
+    }
+    // 디렉터리에 있는 내용을 읽어온다.
+  } else if (pathname === "/create") {
+    let html = inputHtml("", "", "process_create", "추가");
 
     res.writeHead(200);
     res.end(html);
@@ -176,39 +161,7 @@ let server = http.createServer(function (req, res) {
       if (err) {
         console.error(err);
       }
-      let html = `
-      <!DOCTYPE html>
-      <html>
-  
-      <style>
-        table,
-        th,
-        td {
-          border: 1px solid black;
-          border-collapse: collapse;
-        }
-      </style>
-  
-      <head>
-        <meta charset="utf-8">
-      </head>
-  
-      <body>
-      <H2>학생 정보 수정</H2>
-      <form action="http://localhost:8080/process_update" method="post">
-      <input type="text" name="name_old" value="${queryData.name}" hidden>
-        <p>이름 : <input type="text" name="name" value="${queryData.name}"></p>
-        <p>설명 : 
-          <textarea name="desc">${data}</textarea>
-        </p>
-        <p>
-          <input type="submit" value="저장">
-        </p>
-      </form>
-      </body>
-  
-      </html>
-      `;
+      let html = inputHtml(queryData.name, data, "process_update", "수정");
       res.writeHead(200);
       res.end(html);
     });
@@ -243,7 +196,23 @@ let server = http.createServer(function (req, res) {
       );
     });
   } else if (pathname === "/delete") {
-    let data = queryData.name;
+    let data = "";
+    req.on("data", (newData) => {
+      data = data + newData;
+    });
+
+    req.on("end", () => {
+      let parsedData = qs.parse(data);
+      console.log(parsedData.name);
+      fs.unlink(`../data/${parsedData.name}`, (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+      });
+      res.writeHead(302, { location: "/" });
+      res.end();
+    });
   } else {
     res.writeHead(404, { "Content-Type": "text/html" });
     res.end("no way out!");
