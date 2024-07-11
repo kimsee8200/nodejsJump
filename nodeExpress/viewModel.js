@@ -89,10 +89,32 @@ function listHtml(list, name, data) {
   return html;
 }
 
+function createListForDB(students) {
+  let list = "";
+  let item;
+  for (i = 0; i < students.length; i++) {
+    item = students[i];
+    list += `
+      <tr>
+        <th>${item.id}</th>
+        <th><a href='/student/${item.name}'>${item.name}</a></th>
+        <th><a href="/update/${item.name}">수정</a>
+        <form action="/delete" method="post">
+          <input type="hidden" name="name" value="${item.name}">
+          <input type="submit" value="삭제">
+        </form>
+      </tr>
+      `;
+  }
+
+  return list;
+}
+
 module.exports = {
   listHtml,
   inputHtml,
   listMaker,
+  createListForDB,
 };
 
 // exports.views = {
